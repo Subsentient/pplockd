@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+import os, sys, time
+
+LocalModsPath = 'components'
+InstalledModsPath = f'/usr/local/share/pplockd/{LocalModsPath}'
+ConfPath = '/etc/pplockd'
+
+sys.path.append(InstalledModsPath if os.path.isdir(InstalledModsPath) else LocalModsPath)
+
+if os.path.isdir(ConfPath):
+	sys.path.append(ConfPath)
+
+import PPConfig, XorgControl, KernelControl, PPButtonMon, PPActions
+from PPTypes import PPLockState
+
+class MainObj:
+	Instance = None
+	def __init__(self):
+		self.ButtonMon = PPButtonMon.ButtonMonitor()
+		self.LockState = PPLockState()
+	
+		type(self).Instance = self
+	
+	def MainLoop(self):
+		print('Entering main loop')
+		
+		while True:
+			if NewState := self.ButtonMon.WaitForChange(0.1): #Wait a 10th of a second for something to happen				
+				print(f'Processing button event {NewState}')
+				
+				for Func in PPConfig.EventTriggerFuncs:
+					if Func(NewState):
+						break
+				
+			#Power management
+			if self.LockState.HardLocked and self.LockState.LastHardLockWake + PPConfig.HardLockResleepSecs <= int(time.time()):
+				print(f'{PPConfig.HardLockResleepSecs} secs up, sleeping again.')
+				self.LockState.LastHardLockWake = int(time.time())
+				KernelControl.ActivateSleep()
+
+def Init():
+	if sys.argv[1] != '--nodaemon':
+		PID = os.fork()
+	
+		if PID != 0:
+			print('Daemonizing')
+			sys.exit(0)
+	
+	MObj = MainObj()
+	
+	MObj.MainLoop()
+	
+Init()
+
