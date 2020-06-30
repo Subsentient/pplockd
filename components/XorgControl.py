@@ -57,7 +57,7 @@ def FindTSID():
 
 def __SetTouchscreenPowerImpl(Online):
 	PowerString = 'on' if Online else 'off'
-	TimeoutString = '0' if Online else '5'
+	TimeoutString = '0' if Online else str(PPConfig.SoftLockResleepSecs)
 	TouchString = '-enable' if Online else '-disable'
 
 	Cmds = (f'xset dpms force {PowerString}',
