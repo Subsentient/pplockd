@@ -1,6 +1,6 @@
 
 import KernelControl, XorgControl
-from PPTypes import PPLockState, ButtonAction
+from PPTypes import PPLockState
 import time
 
 def PerformSoftLock():
@@ -54,11 +54,4 @@ def PerformRotate():
 		print('Rotated to landscape orientation')
 	
 	PPLockState.Instance.RightRotated = not PPLockState.Instance.RightRotated
-
-ActionMap = {
-				ButtonAction.UNLOCK : PerformUnlock,
-				ButtonAction.SOFTLOCK : PerformSoftLock,
-				ButtonAction.SCREENROTATE : PerformRotate,
-				ButtonAction.HARDLOCK : PerformHardLock,
-			}
-				
+	

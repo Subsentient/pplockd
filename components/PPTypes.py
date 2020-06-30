@@ -1,15 +1,6 @@
 import threading
 from enum import IntEnum, auto
 
-class ButtonAction(IntEnum):
-	INVALID = 0
-	SOFTLOCK = 1
-	HARDLOCK = 2
-	UNLOCK = 3
-	SCREENROTATE = 4
-	POWERDOWN = 5
-	MAX = auto()
-	
 class ButtonType(IntEnum):
 	INVALID = 0
 	POWER = 1
