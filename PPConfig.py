@@ -31,6 +31,9 @@ def CheckForHardLock(ButtonStates): #Vol down + power at same time
 	return True
 	
 def CheckForRotate(ButtonStates):
+	if PPLockState.Instance.SoftLocked or PPLockState.Instance.HardLocked:
+		return False #Don't allow us to do this by accident when it's in our pocket
+		
 	if not all([not ButtonStates[S].IsPressed for S in ButtonStates]):
 		return False #Can't have a button held down to trigger this
 	

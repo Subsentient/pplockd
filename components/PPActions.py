@@ -18,7 +18,8 @@ def PerformSoftLock():
 	print('Soft locked PinePhone')
 	
 def PerformHardLock():
-	PerformSoftLock()
+	if not PPLockState.Instance.SoftLocked: #Don't do it all over again for no good reason
+		PerformSoftLock()
 
 	PPLockState.Instance.HardLocked = True
 
