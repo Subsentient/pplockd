@@ -29,7 +29,9 @@ class MainObj:
 		print('Entering main loop')
 		
 		while True:
-			if NewState := self.ButtonMon.WaitForChange(0.1): #Wait a 10th of a second for something to happen				
+			NewState = self.ButtonMon.WaitForChange(0.1) #Wait a 10th of a second for something to happen				
+			
+			if NewState:
 				print(f'Processing button event {NewState}')
 				
 				for Func in PPConfig.EventTriggerFuncs:
