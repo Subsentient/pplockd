@@ -44,7 +44,7 @@ class MainObj:
 				self.LockState.LastHardLockWake = int(time.time())
 
 def Init():
-	if sys.argv[1] != '--nodaemon':
+	if len(sys.argv) <= 1 or sys.argv[1] != '--nodaemon':
 		PID = os.fork()
 	
 		if PID != 0:
