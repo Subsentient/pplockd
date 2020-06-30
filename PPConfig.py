@@ -37,16 +37,22 @@ def CheckForRotate(ButtonStates):
 	if not all([not ButtonStates[S].IsPressed for S in ButtonStates]):
 		return False #Can't have a button held down to trigger this
 	
-	if not ButtonStates[ButtonType.VOLDOWN].ChangeTime or not ButtonStates[ButtonType.VOLUP].ChangeTime:
+	VolDown = ButtonStates[ButtonType.VOLDOWN]
+	VolUp = ButtonStates[ButtonType.VOLUP]
+	
+	if not VolDown.ChangeTime or not VolUp.ChangeTime:
 		return False
 		
-	Distance = ButtonStates[ButtonType.VOLDOWN].ChangeTime - ButtonStates[ButtonType.VOLUP].ChangeTime
+	Distance = VolDown.ChangeTime - VolUp.ChangeTime
 	
+	PushTime = max((VolDown.ChangeTime, VolUp.ChangeTime))
+	
+	print(f'PUSH TIME {PushTime}')
 	if Distance < 0:
-		Distance = -Distance
+		return False
 	
-	
-	if Distance > 1500 or Distance > (time.time_ns() // 1000) + 1000: #No longer than 1.5secs distance, and not more than a second ago.
+	if Distance > 1500 or PushTime + 1000 < (time.time_ns() // 1_000_000): #No longer than 1.5secs distance, and not more than a second ago.
+		print(f'Got rejection by {(time.time_ns()//1_000_000) - PushTime + 1000} milliseconds')
 		return False
 	
 	PPActions.PerformRotate()

@@ -6,7 +6,9 @@ def RunAsXorgUser(Username, Func, Args = tuple()):
 	
 	PID = os.fork()
 
-	if PID: #Parent process
+	if PID > 0: #Parent process
+		os.waitpid(PID, 0)
+
 		return Recv.recv()
 
 	User = pwd.getpwnam(Username)

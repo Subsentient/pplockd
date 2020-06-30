@@ -23,6 +23,10 @@ class ButtonState:
 	def __exit__(self, *Discarded):
 		self.Lock.release()
 
+	def __repr__(self):
+		with self.Lock:
+			return f'<ButtonState for {self.Type}, IsPressed: {self.IsPressed}, ChangeTime: {self.ChangeTime}, LastChangeTime: {self.LastChangeTime}>'
+
 	def Clone(self):
 		B = ButtonState(self.Type)
 
