@@ -15,6 +15,7 @@ class ButtonState:
 		self.LastChangeTime = 0
 		self.__Type = Type
 		self.Lock = threading.Lock()
+		self.Event = threading.Semaphore()
 
 	def __enter__(self):
 		self.Lock.acquire()
@@ -27,6 +28,14 @@ class ButtonState:
 		with self.Lock:
 			return f'<ButtonState for {self.Type}, IsPressed: {self.IsPressed}, ChangeTime: {self.ChangeTime}, LastChangeTime: {self.LastChangeTime}>'
 
+	def Wait(self, IsPressed):
+		while True:
+			with self.Lock:
+				if self.IsPressed == IsPressed:
+					return
+			
+			self.Event.acquire()
+			
 	def Clone(self):
 		B = ButtonState(self.Type)
 
@@ -34,7 +43,7 @@ class ButtonState:
 			B.IsPressed = self.IsPressed
 			B.ChangeTime = self.ChangeTime
 			B.LastChangeTime = self.LastChangeTime
-		
+
 		return B
 
 	@property
@@ -52,4 +61,6 @@ class PPLockState:
 		self.HardLocked = False #We're in suspend/standby, waiting for a wake event
 		self.RightRotated = False #Screen is rotated to the right
 		self.LastHardLockWake = 0
+		self.LastSoftLock = 0
+		self.LastHardLock = 0
 		type(self).Instance = self

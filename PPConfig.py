@@ -9,12 +9,15 @@ SoftLockResleepSecs = 5 #Shut the display off again after this amount of time if
 HardLockResleepSecs = 30 #After 30 seconds of a wakeup event, if the user hasn't unlocked us, go back to sleep
 
 def CheckForSoftLock(ButtonStates): #Soft press power
-	if any([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.VOLUP, ButtonType.POWER)]):
+	if any([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.VOLUP)]):
 		return False #Probably a hard lock
 
-	if ButtonStates[ButtonType.POWER].ChangeTime + 1000 < (time.time_ns() // 1_000_000):
+	if not ButtonStates[ButtonType.POWER].IsPressed:
 		return False
-		
+	
+	#Wait for them to let go.
+	PPButtonMon.ButtonMonitor.Instance.WaitForButtonState(ButtonType.POWER, False)
+	
 	if PPLockState.Instance.HardLocked or PPLockState.Instance.SoftLocked:
 		PPActions.PerformUnlock()
 	else:
@@ -31,14 +34,10 @@ def CheckForHardLock(ButtonStates): #Vol down + power at same time
 	if not all([ButtonStates[S].IsPressed for S in Relevant]):
 		return False
 	
-	while True: #Wait for them to let go.
-		Buttons = PPButtonMon.ButtonMonitor.Instance.GetButtonStates()
-		
-		if not any([Buttons[B].IsPressed for B in Relevant]):
-			break
+	for R in Relevant: #Wait for them to let go
+		PPButtonMon.ButtonMonitor.Instance.WaitForButtonState(R, False)
 
-		time.sleep(0.1)
-		
+	
 	PPActions.PerformHardLock()
 	return True
 	

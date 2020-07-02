@@ -14,6 +14,7 @@ def PerformSoftLock():
 	KernelControl.SetCPUPowersave(0, True)
 
 	State.SoftLocked = True
+	State.LastSoftLock = int(time.time())
 	
 	print('Soft locked PinePhone')
 	
@@ -22,6 +23,7 @@ def PerformHardLock():
 		PerformSoftLock()
 
 	PPLockState.Instance.HardLocked = True
+	PPLockState.Instance.LastHardLock = int(time.time())
 
 	print('Performing hard lock')
 

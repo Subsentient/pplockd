@@ -71,9 +71,10 @@ class ButtonMonitor:
 					Button.IsPressed = bool(S.value)
 					Button.LastChangeTime = Button.ChangeTime
 					Button.ChangeTime = S.MSTime
-				
+					E = Button.Event
+					
+				E.release()
 				self.__ButtonEvent.put(self.GetButtonStates())
-	
 		
 	def __PowerThreadFunc(self):
 		with open('/dev/input/event0', 'rb') as Desc:
@@ -90,9 +91,17 @@ class ButtonMonitor:
 					Button.IsPressed = bool(S.value)
 					Button.LastChangeTime = Button.ChangeTime
 					Button.ChangeTime = S.MSTime
-
+					E = Button.Event
+					
+				E.release()
 				self.__ButtonEvent.put(self.GetButtonStates())
-
+				
 	def GetButtonStates(self):
 		return { S : self.__ButtonStates[S].Clone() for S in self.__ButtonStates }
 
+	def WaitForButtonState(self, ButtonType, IsPressed):
+			return self.__ButtonStates[ButtonType].Wait(IsPressed)
+		
+		
+		
+		
