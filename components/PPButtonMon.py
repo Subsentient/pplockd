@@ -19,6 +19,8 @@ class KernelInputEventStruct:
 		return ((self.tv_sec * 1_000_000) + self.tv_usec) // 1000
 
 class ButtonMonitor:
+	Instance = None
+	
 	def __init__(self):
 		self.__PowerThread = threading.Thread(target=self.__PowerThreadFunc)
 		self.__VolThread = threading.Thread(target=self.__VolThreadFunc)
@@ -28,7 +30,9 @@ class ButtonMonitor:
 		self.__ButtonEvent = queue.Queue()
 		self.__PowerThread.start()
 		self.__VolThread.start()
-
+		
+		type(self).Instance = self
+		
 	@property
 	def ShouldDie(self):
 		with self.__DieLock:

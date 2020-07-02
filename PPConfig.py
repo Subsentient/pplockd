@@ -9,10 +9,12 @@ SoftLockResleepSecs = 5 #Shut the display off again after this amount of time if
 HardLockResleepSecs = 30 #After 30 seconds of a wakeup event, if the user hasn't unlocked us, go back to sleep
 
 def CheckForSoftLock(ButtonStates): #Soft press power
-	if any([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.VOLUP)]) \
-	or not ButtonStates[ButtonType.POWER].IsPressed:
+	if any([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.VOLUP, ButtonType.POWER)]):
 		return False #Probably a hard lock
-	
+
+	if ButtonStates[ButtonType.POWER].ChangeTime + 1000 < (time.time_ns() // 1_000_000):
+		return False
+		
 	if PPLockState.Instance.HardLocked or PPLockState.Instance.SoftLocked:
 		PPActions.PerformUnlock()
 	else:
@@ -23,10 +25,20 @@ def CheckForSoftLock(ButtonStates): #Soft press power
 def CheckForHardLock(ButtonStates): #Vol down + power at same time
 	if PPLockState.Instance.HardLocked:
 		return False #Don't re-lock if we're already locked.
-		
-	if not all([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.POWER)]):
+	
+	Relevant = (ButtonType.VOLDOWN, ButtonType.POWER)
+	
+	if not all([ButtonStates[S].IsPressed for S in Relevant]):
 		return False
 	
+	while True: #Wait for them to let go.
+		Buttons = PPButtonMon.ButtonMonitor.Instance.GetButtonStates()
+		
+		if not any([Buttons[B].IsPressed for B in Relevant]):
+			break
+
+		time.sleep(0.1)
+		
 	PPActions.PerformHardLock()
 	return True
 	
@@ -59,4 +71,4 @@ def CheckForRotate(ButtonStates):
 	
 	return True
 
-EventTriggerFuncs = (CheckForSoftLock, CheckForHardLock, CheckForRotate)
+EventTriggerFuncs = (CheckForHardLock, CheckForSoftLock, CheckForRotate)
