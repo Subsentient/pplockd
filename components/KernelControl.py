@@ -22,8 +22,16 @@ def ActivateSleep():
 
 def SetSoftLockLED(Lit):
 	try:
-		with open('/sys/class/leds/green:indicator/brightness', 'w') as Desc:
-			Desc.write(f'{int(Lit)}')
+		with open('/sys/class/leds/green:indicator/trigger', 'w') as Desc:
+			Desc.write('timer' if Lit else 'none')
+		
+		
+		if Lit:
+			with open('/sys/class/leds/green:indicator/delay_off', 'w') as Desc:
+				Desc.write('3000')
+				
+			with open('/sys/class/leds/green:indicator/delay_on', 'w') as Desc:
+				Desc.write('100')
 	except:
 		traceback.print_exc()
 		return False
