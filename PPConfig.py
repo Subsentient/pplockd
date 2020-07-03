@@ -12,12 +12,17 @@ def CheckForSoftLock(ButtonStates): #Soft press power
 	if any([ButtonStates[S].IsPressed for S in (ButtonType.VOLDOWN, ButtonType.VOLUP)]):
 		return False #Probably a hard lock
 
-	if not ButtonStates[ButtonType.POWER].IsPressed:
+	PowButton = ButtonStates[ButtonType.POWER]
+	
+	if not PowButton.IsPressed or PowButton.ChangeTime and PowButton.ChangeTime + 2000 < int(time.time_ns() // 1_000_000):
 		return False
 	
 	#Wait for them to let go.
 	PPButtonMon.ButtonMonitor.Instance.WaitForButtonState(ButtonType.POWER, False)
 	
+	if all((PowButton.ChangeTime, PowButton.LastChangeTime)) and PowButton.ChangeTime - PowButton.LastChangeTime <= 75: #Obviously a bug in the kernel driver, nobody's that fast 
+		return False
+		
 	if PPLockState.Instance.HardLocked or PPLockState.Instance.SoftLocked:
 		PPActions.PerformUnlock()
 	else:
