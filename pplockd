@@ -38,12 +38,20 @@ class MainObj:
 					if Func(NewState):
 						break
 				
-			#Power management
-			if self.LockState.HardLocked and self.LockState.LastHardLockWake != 0 \
-			and self.LockState.LastHardLockWake + PPConfig.HardLockResleepSecs <= int(time.time()):
+			#Hard lock management after this point
+			if not self.LockState.HardLocked or self.LockState.LastHardLockWake == 0:
+				continue
+				
+			if self.LockState.LastHardLockWake + PPConfig.HardLockResleepSecs <= int(time.time()):
 				print(f'{PPConfig.HardLockResleepSecs} secs up, sleeping again.')
-				KernelControl.ActivateSleep()
-				self.LockState.LastHardLockWake = int(time.time())
+				
+				if KernelControl.ActivateSleep():
+					self.LockState.LastHardLockWake = int(time.time())
+				else:
+					print('Failed to resume hard lock, falling back to soft lock.')
+					
+					self.LockState.HardLocked = False
+					PPActions.PerformSoftLock()
 
 def Init():
 	if len(sys.argv) <= 1 or sys.argv[1] != '--nodaemon':

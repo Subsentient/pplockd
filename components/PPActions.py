@@ -16,22 +16,33 @@ def PerformSoftLock():
 	State.SoftLocked = True
 	State.LastSoftLock = int(time.time())
 	
+	KernelControl.SetSoftLockLED(True)
+	
 	print('Soft locked PinePhone')
 	
 def PerformHardLock():
 	if not PPLockState.Instance.SoftLocked: #Don't do it all over again for no good reason
 		PerformSoftLock()
+		KernelControl.SetSoftLockLED(False)
 
 	PPLockState.Instance.HardLocked = True
-	PPLockState.Instance.LastHardLock = int(time.time())
-
+	
+	KernelControl.SetHardLockLED(True)
+	
+	LHL = int(time.time()) #Get time before we go to sleep.
+	
 	print('Performing hard lock')
 
-	KernelControl.ActivateSleep()
+	if not KernelControl.ActivateSleep():
+		print('Failed to activate a hard lock, falling back to soft lock')
+		
+		PPLockState.Instance.HardLocked = False
+		return
 
 	print('Woken from hard lock')
 
 	PPLockState.Instance.LastHardLockWake = int(time.time())
+	PPLockState.Instance.LastHardLock = LHL
 	
 def PerformUnlock():
 	State = PPLockState.Instance
@@ -39,6 +50,9 @@ def PerformUnlock():
 	State.HardLocked = False
 	State.SoftLocked = False
 
+	KernelControl.SetHardLockLED(False)
+	KernelControl.SetSoftLockLED(False)
+	
 	for CoreID in range(4):
 		KernelControl.SetCPUPower(CoreID, True)
 		KernelControl.SetCPUPowersave(CoreID, False)
